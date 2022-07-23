@@ -107,6 +107,7 @@ const itemsLeft = computed(() => activeTodos.value.length)
 
 // const tasks = toDoArray.value.map(t => [t.desc, t.isDone ? 'Done' : 'Pending'])
 
+// This function is created to be served as one variable for print functions such as excel and pdf
 const tasks = () => toDoArray.value.map(t => {
   return {
     todo: t.desc,
