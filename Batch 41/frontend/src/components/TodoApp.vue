@@ -12,6 +12,9 @@
       <!-- <q-btn round icon="search" @click="isHidden = !isHidden" /> -->
       <q-btn round dense icon="description" @click="downloadExcel" />
       <q-btn round dense icon="picture_as_pdf" @click="openPDF" />
+      <q-btn v-if="$global.user" @click="$wings.logout()" :label="$global.user.displayName" dense icon="login" color="red"  />
+      <q-btn v-else @click="login" dense icon="login" color="secondary" />
+
     </q-toolbar>
   </div>
   <pie-chart :donut="true" :data="[['Active', activeTodos.length], ['Completed', completedTodos.length]]"></pie-chart>
@@ -69,12 +72,44 @@ import { ref, computed, getCurrentInstance } from 'vue'
 
 import ZHuman from './ZHuman.vue'
 
-const { $pdfMake, $wings, $xlsxUtils, $xlsxWrite } = getCurrentInstance().appContext.config.globalProperties
+const { $pdfMake, $wings, $xlsxUtils, $xlsxWrite, $global } = getCurrentInstance().appContext.config.globalProperties
 
 const excelWrite = $xlsxWrite
 const excelUtils = $xlsxUtils
 
-const todosSrvc = $wings.wingsService('todos')
+const todosSrvc = $wings.wingsService('tasks')
+
+$wings.on('login', ({ user }) => {
+  console.log('user', user)
+  $global.user = user
+  todosSrvc.reset()
+  todosSrvc.init()
+})
+
+$wings.on('logout', () => {
+  $global.user = null
+  toDoArray.value = []
+})
+
+const auth = async () => {
+  try {
+    await $wings.authenticate()
+  } catch (error) {
+    toDoArray.value = []
+  }
+}
+
+auth()
+
+$wings.authenticate()
+
+function login () {
+  $wings.authenticate({
+    email: 'eric@eric.com',
+    password: 'pogi',
+    strategy: 'local'
+  })
+}
 
 todosSrvc.on('dataChange', tasks => {
   toDoArray.value = [...tasks]
